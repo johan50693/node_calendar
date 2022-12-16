@@ -3,16 +3,26 @@ const Usuario = require('../models/Usuario');
 
 const crearUsuario = async (req,res = response) => {
 
-  const { name, email, password} = req.body;
-  const usuario = new Usuario(req.body);
-
+  const { email, password} = req.body;
+  
   try {
+    
+    let usuario = await Usuario.findOne({email});
+    
+    if(usuario){
+      return res.status(400).json({
+        ok: false,
+        msg: "El usuario ya se encuentra registrado"
+      });
+    }
+    
+    usuario = new Usuario(req.body);
     await usuario.save();
   
     res.status(201).json({
       ok: true,
-      msg: "register",
-      usuario
+      uid: usuario._id,
+      name: usuario.name
     });
     
   } catch (error) {
