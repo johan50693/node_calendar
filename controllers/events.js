@@ -12,6 +12,9 @@ const getEventos = (req, res= response ) => {
 
 const crearEvento = (req, res= response ) => {
 
+  // Verificar que exista el evento
+  console.log(req.body);
+
   return res.status(200).json({
     ok:true,
     msg: "crearEvento"
