@@ -1,11 +1,13 @@
 const { response } = require('express');
 const Evento= require('../models/Evento');
 
-const getEventos = (req, res= response ) => {
+const getEventos = async (req, res= response ) => {
+
+  const eventos = await Evento.find({'user': req.uid}).populate('user','name');
 
   return res.status(200).json({
     ok:true,
-    msg: "getEventos"
+    eventos
   });
 
 }
@@ -36,12 +38,52 @@ const crearEvento = async (req, res= response ) => {
 
 }
 
-const actualizarEvento = (req, res= response ) => {
+const actualizarEvento = async (req, res= response ) => {
 
-  return res.status(200).json({
-    ok:true,
-    msg: "actualizarEvento"
-  });
+  const eventoId = req.params.id;
+  const uid = req.uid;
+
+  try {
+    
+    const evento = await Evento.findById(eventoId);
+
+    if(!evento){
+      return res.status(200).json({
+        ok:true,
+        msg: 'El evento suministrado no existe'
+      });
+    }
+    
+    if(evento.user.toString() !== uid){
+      return res.status(401).json({
+        ok:false,
+        msg: 'No poseee privilegios para editar este evento'
+      });
+    }
+
+    const nuevoEvento = {
+      ...req.body,
+      user: uid
+    }
+
+    const eventoActualizado = await Evento.findByIdAndUpdate(eventoId,nuevoEvento,{new: true});
+
+
+    return res.status(200).json({
+      ok:true,
+      evento: eventoActualizado
+    });
+
+  } catch (error) {
+
+    console.log(error);
+    return res.status(200).json({
+      ok:false,
+      msg: "Ha ocurrido un error procesando su solicitud"
+    });
+  }
+
+  
 
 }
 
