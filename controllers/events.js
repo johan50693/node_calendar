@@ -82,17 +82,47 @@ const actualizarEvento = async (req, res= response ) => {
       msg: "Ha ocurrido un error procesando su solicitud"
     });
   }
-
-  
-
 }
 
-const eliminarEvento = (req, res= response ) => {
+const eliminarEvento = async (req, res= response ) => {
 
-  return res.status(200).json({
-    ok:true,
-    msg: "eliminarEvento"
-  });
+  const eventoId = req.params.id;
+  const uid = req.uid;
+
+  try {
+    
+    const evento = await Evento.findById(eventoId);
+
+    if(!evento){
+      return res.status(200).json({
+        ok:true,
+        msg: 'El evento suministrado no existe'
+      });
+    }
+    
+    if(evento.user.toString() !== uid){
+      return res.status(401).json({
+        ok:false,
+        msg: 'No poseee privilegios para eliminar este evento'
+      });
+    }
+
+    const eventoEliminado = await Evento.findByIdAndDelete(eventoId);
+
+
+    return res.status(200).json({
+      ok:true,
+      evento: eventoEliminado
+    });
+
+  } catch (error) {
+
+    console.log(error);
+    return res.status(200).json({
+      ok:false,
+      msg: "Ha ocurrido un error procesando su solicitud"
+    });
+  }
 
 }
 
